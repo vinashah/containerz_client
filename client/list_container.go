@@ -17,17 +17,22 @@ package client
 import (
 	"context"
 	"io"
-
+        "fmt"
+        "strings"
 	"k8s.io/klog/v2"
 	cpb "github.com/openconfig/gnoi/containerz"
 )
 
 // ListContainer implements the client logic for listing the existing containers on the target system.
-func (c *Client) ListContainer(ctx context.Context, all bool, limit int32, filter map[string][]string) (<-chan *ContainerInfo, error) {
+func (c *Client) ListContainer(ctx context.Context, all bool, limit int32, filter []string) (<-chan *ContainerInfo, error) {
+       	filters, err := toFilter(filter)
+	if err != nil {
+		return nil, err
+	} 
 	req := &cpb.ListContainerRequest{
 		All:    all,
 		Limit:  limit,
-		Filter: toFilter(filter),
+		Filter: filters,
 	}
 
 	dcli, err := c.cli.ListContainer(ctx, req)
@@ -56,6 +61,8 @@ func (c *Client) ListContainer(ctx context.Context, all bool, limit int32, filte
 				Name:      msg.GetName(),
 				ImageName: msg.GetImageName(),
 				State:     msg.GetStatus().String(),
+				Labels:    msg.GetLabels(),
+				Hash:      msg.GetHash(),
 			}) {
 				klog.Warningf("operation cancelled; returning")
 				return
@@ -66,7 +73,18 @@ func (c *Client) ListContainer(ctx context.Context, all bool, limit int32, filte
 	return ch, nil
 }
 
-func toFilter(m map[string][]string) []*cpb.ListContainerRequest_Filter {
-	// TODO(alshabib) implement this when filter field becomes a repeated.
-	return nil
+func toFilter (filters []string) ([]*cpb.ListContainerRequest_Filter, error) {
+	mapping := make([]*cpb.ListContainerRequest_Filter, 0, len(filters))
+	for _, f := range filters {
+		parts := strings.Split(f, "=")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid filter: %s", f)
+		}
+                values := strings.Split(parts[1], ",")
+		mapping = append(mapping, &cpb.ListContainerRequest_Filter{
+			Key:   parts[0],
+			Value: values,
+		})
+	}
+	return mapping, nil
 }

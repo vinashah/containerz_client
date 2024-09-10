@@ -17,6 +17,8 @@ package cmd
 import (
 	"fmt"
 	"strings"
+        "context"
+        "google.golang.org/grpc/metadata"
 
 	"github.com/spf13/cobra"
 )
@@ -43,8 +45,11 @@ var volCreateCmd = &cobra.Command{
 			parts := strings.SplitN(l, "=", 2)
 			labels[parts[0]] = parts[1]
 		}
+                ctx, cancel := context.WithCancel(command.Context())
+                defer cancel()
+                ctx = metadata.AppendToOutgoingContext(ctx, "username","cisco", "password", "cisco123")
 
-		resp, err := containerzClient.CreateVolume(command.Context(), name, driver, labels, opts)
+		resp, err := containerzClient.CreateVolume(ctx, name, driver, labels, opts)
 		if err != nil {
 			return err
 		}

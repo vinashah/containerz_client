@@ -25,7 +25,7 @@ import (
 
 // UpdateContainer updates an existing container with the provided configuration and returns its
 // instance name if the operation succeeded or an error otherwise.
-func (c *Client) UpdateContainer(ctx context.Context, image string, tag string, cmd string, instance string, async bool, opts ...StartOption) (string, error) {
+func (c *Client) UpdateContainer(ctx context.Context, instance string, image string, tag string, cmd string, async bool, opts ...StartOption) (string, error) {
 
 	// First get the ContainerStartRequest.
 	reqInlet, err := startContainerRequestWithOptions(ctx, image, tag, cmd, instance, opts...)

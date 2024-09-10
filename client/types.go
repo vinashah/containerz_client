@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"k8s.io/klog/v2"
+types "github.com/openconfig/gnoi/types"
 )
 
 // Progress contains progress information about this operation.
@@ -36,6 +37,8 @@ type ContainerInfo struct {
 	Name      string
 	ImageName string
 	State     string
+	Labels   map[string]string
+	Hash     *types.HashType
 
 	Error error
 }

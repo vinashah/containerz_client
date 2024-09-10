@@ -16,6 +16,8 @@ package cmd
 
 import (
 	"fmt"
+	"context"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/openconfig/containerz/client"
 	"github.com/spf13/cobra"
@@ -61,8 +63,11 @@ var cntUpdateCmd = &cobra.Command{
 		if len(addCaps) > 0 || len(delCaps) > 0 {
 			opts = append(opts, client.WithCapabilities(addCaps, delCaps))
 		}
+		ctx, cancel := context.WithCancel(command.Context())
+		defer cancel()
+		ctx = metadata.AppendToOutgoingContext(ctx, "username", "cisco", "password", "cisco123")
 
-		id, err := containerzClient.UpdateContainer(command.Context(), image, tag, cntCommand, instance, async, opts...)
+		id, err := containerzClient.UpdateContainer(ctx, instance, image, tag, cntCommand, async, client.WithEnv(envs), client.WithPorts(ports), client.WithVolumes(volumes))
 		if err != nil {
 			return err
 		}
@@ -96,4 +101,10 @@ func init() {
 	cntUpdateCmd.PersistentFlags().StringArrayVarP(&devices, "device", "d", []string{}, "Devices to attach to the container (format: <src-path>[:<dst-path>[:<permissions>]])")
 	cntUpdateCmd.PersistentFlags().StringArrayVar(&addCaps, "add_caps", []string{}, "Capabilities to add.")
 	cntUpdateCmd.PersistentFlags().StringArrayVar(&delCaps, "del_caps", []string{}, "Capabilities to remove.")
+	cntUpdateCmd.PersistentFlags().StringVar(&cntCommand, "command", "/bin/bash", "command to run.")
+	cntUpdateCmd.PersistentFlags().StringVar(&instance, "instance", "", "Name of the container to update.")
+	cntUpdateCmd.PersistentFlags().StringArrayVar(&ports, "port", []string{}, "Ports to expose (format: <internal_port>:<external_port>")
+	cntUpdateCmd.PersistentFlags().StringArrayVar(&envs, "env", []string{}, "Environment vars to set (format: <VAR_NAME>=<VAR_VALUE>")
+	cntUpdateCmd.PersistentFlags().StringArrayVarP(&volumes, "volume", "v", []string{}, "Volumes to attach to the container (format: <volume-name>:<mountpoint>[:ro])")
+	cntUpdateCmd.PersistentFlags().BoolVar(&updateAsync, "async", false, "Run the update operation asynchronously")
 }

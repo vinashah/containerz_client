@@ -29,6 +29,7 @@ var (
 
 	// ErrRunning indicates that there is a container running this image.
 	ErrRunning = status.Error(codes.FailedPrecondition, "resource is running")
+	ErrUnspecified = status.Error(codes.FailedPrecondition, "unspecified")
 )
 
 // RemoveContainer removes an image from the target system. It returns nil upon success. Otherwise it

@@ -16,6 +16,8 @@ package cmd
 
 import (
 	"fmt"
+        "context"
+        "google.golang.org/grpc/metadata"
 
 	"github.com/spf13/cobra"
 )
@@ -27,8 +29,11 @@ var cntRemoveCmd = &cobra.Command{
 		if instance == "" {
 			fmt.Println("--instance must be provided")
 		}
+                ctx, cancel := context.WithCancel(command.Context())
+                defer cancel()
+                ctx = metadata.AppendToOutgoingContext(ctx, "username","cisco", "password", "cisco123")
 
-		if err := containerzClient.RemoveContainer(command.Context(), instance, force); err != nil {
+		if err := containerzClient.RemoveContainer(ctx, instance, force); err != nil {
 			return err
 		}
 

@@ -23,6 +23,8 @@ import (
 
 var (
 	addr string
+	username string
+	password string
 )
 
 // RootCmd is the cmd entrypoint for all containerz commands.
@@ -39,4 +41,6 @@ var RootCmd = &cobra.Command{
 
 func init() {
 	RootCmd.PersistentFlags().StringVar(&addr, "addr", ":19999", "Containerz listen port.")
+        RootCmd.PersistentFlags().StringVar(&username, "username", "cisco", "Username for authentication")
+        RootCmd.PersistentFlags().StringVar(&password, "password", "cisco123", "Password for authentication")
 }

@@ -17,16 +17,21 @@ package client
 import (
 	"context"
 	"io"
-
+        "fmt"
+        "strings"
 	"k8s.io/klog/v2"
 	cpb "github.com/openconfig/gnoi/containerz"
 )
 
-// ListImage implements the client logic for listing the existing images on the target system.
-func (c *Client) ListImage(ctx context.Context, limit int32, filter map[string][]string) (<-chan *ImageInfo, error) {
+// ListImage implements the client logic for listing the existing containers on the target system.
+func (c *Client) ListImage(ctx context.Context, limit int32, filter []string) (<-chan *ImageInfo, error) {
+       	imgFilters, err := toImgFilter(filter)
+	if err != nil {
+		return nil, err
+	} 
 	req := &cpb.ListImageRequest{
 		Limit:  limit,
-		Filter: toImageFilter(filter),
+		Filter: imgFilters,
 	}
 
 	dcli, err := c.cli.ListImage(ctx, req)
@@ -64,7 +69,18 @@ func (c *Client) ListImage(ctx context.Context, limit int32, filter map[string][
 	return ch, nil
 }
 
-func toImageFilter(m map[string][]string) []*cpb.ListImageRequest_Filter {
-	// TODO(alshabib) implement this when filter field becomes a repeated.
-	return nil
+func toImgFilter (filters []string) ([]*cpb.ListImageRequest_Filter, error) {
+	mapping := make([]*cpb.ListImageRequest_Filter, 0, len(filters))
+	for _, f := range filters {
+		parts := strings.Split(f, "=")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid filter: %s", f)
+		}
+                values := strings.Split(parts[1], ",")
+		mapping = append(mapping, &cpb.ListImageRequest_Filter{
+			Key:   parts[0],
+			Value: values,
+		})
+	}
+	return mapping, nil
 }

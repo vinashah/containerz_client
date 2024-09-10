@@ -18,21 +18,28 @@ import (
 	"fmt"
 	"os"
 	"text/tabwriter"
-
+        "context"
+        "google.golang.org/grpc/metadata"
 	"github.com/spf13/cobra"
 )
 
+var (
+	imgFilter              []string
+)
 var imageListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List images",
 	RunE: func(command *cobra.Command, args []string) error {
-		ch, err := containerzClient.ListImage(command.Context(), limit, nil)
+                ctx, cancel := context.WithCancel(command.Context())
+                defer cancel()
+                ctx = metadata.AppendToOutgoingContext(ctx, "username","cisco", "password", "cisco123")
+                ch, err := containerzClient.ListImage(ctx, limit, imgFilter)
 		if err != nil {
 			return err
 		}
-
+                //fmt.Printf("Filters: %v\n", filter)
 		writer := tabwriter.NewWriter(os.Stdout, 0, 8, 1, '\t', tabwriter.AlignRight)
-		fmt.Fprint(writer, "ID\tName\tTag\n")
+		fmt.Fprint(writer, "ID\tImage\tTag\n")
 		defer writer.Flush()
 		for info := range ch {
 			if info.Error != nil {
@@ -49,4 +56,5 @@ func init() {
 	imageCmd.AddCommand(imageListCmd)
 	imageListCmd.PersistentFlags().BoolVar(&all, "all", false, "Return all images.")
 	imageListCmd.PersistentFlags().Int32Var(&limit, "limit", -1, "Number of images to return")
+	imageListCmd.PersistentFlags().StringArrayVarP(&imgFilter, "filter", "f", []string{}, "filter to apply" )
 }

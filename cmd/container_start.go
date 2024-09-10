@@ -16,6 +16,8 @@ package cmd
 
 import (
 	"fmt"
+        "context"
+        "google.golang.org/grpc/metadata"
 	"strings"
 
 	"github.com/openconfig/containerz/client"
@@ -36,6 +38,7 @@ var (
 	cpus                 float64
 	softMem              int64
 	hardMem              int64
+        //labels               []string
 )
 
 var cntStartCmd = &cobra.Command{
@@ -43,8 +46,11 @@ var cntStartCmd = &cobra.Command{
 	Short: "start a container wirth the specified image and tag",
 	RunE: func(command *cobra.Command, args []string) error {
 		if image == "" {
-			return fmt.Errorf("--image must be specified")
+			//return fmt.Errorf("--image must be specified")
 		}
+                ctx, cancel := context.WithCancel(command.Context())
+                defer cancel()
+                ctx = metadata.AppendToOutgoingContext(ctx, "username","cisco", "password", "cisco123")
 
 		opts := []client.StartOption{}
 		if len(ports) > 0 {
@@ -71,8 +77,8 @@ var cntStartCmd = &cobra.Command{
 		if len(addCaps) > 0 || len(delCaps) > 0 {
 			opts = append(opts, client.WithCapabilities(addCaps, delCaps))
 		}
+		label := map[string]string{}
 		if len(labels) > 0 {
-			label := map[string]string{}
 			for _, l := range labels {
 				parts := strings.SplitN(l, "=", 2)
 				label[parts[0]] = parts[1]
@@ -89,7 +95,7 @@ var cntStartCmd = &cobra.Command{
 			opts = append(opts, client.WithHardLimit(hardMem))
 		}
 
-		id, err := containerzClient.StartContainer(command.Context(), image, tag, cntCommand, instance, opts...)
+		id, err := containerzClient.StartContainer(ctx, image, tag, cntCommand, instance, client.WithEnv(envs), client.WithPorts(ports), client.WithVolumes(volumes), client.WithLabels(label), client.WithCPUs(cpus), client.WithSoftLimit(softMem),client.WithHardLimit(hardMem),client.WithDevices(devices))
 		if err != nil {
 			return err
 		}
@@ -102,7 +108,7 @@ var cntStartCmd = &cobra.Command{
 func init() {
 	containerCmd.AddCommand(cntStartCmd)
 
-	cntStartCmd.PersistentFlags().StringVar(&cntCommand, "command", "/bin/bash", "command to run.")
+	cntStartCmd.PersistentFlags().StringVar(&cntCommand, "command", "", "command to run.")
 	cntStartCmd.PersistentFlags().StringVar(&instance, "instance", "", "Name to give to the container.")
 	cntStartCmd.PersistentFlags().StringVar(&network, "network", "", "Network to attach container to.")
 	cntStartCmd.PersistentFlags().StringVar(&runAs, "runas", "", "User to use (format: <user>[:<group>]")

@@ -41,6 +41,8 @@ func (c *Client) RemoveImage(ctx context.Context, image string, tag string, forc
 		return ErrNotFound
 	case cpb.RemoveImageResponse_RUNNING:
 		return ErrRunning
+	case cpb.RemoveImageResponse_UNSPECIFIED:
+		return ErrUnspecified
 	default:
 		return errors.New("unknown error occurred")
 	}

@@ -17,6 +17,8 @@ package cmd
 import (
 	"fmt"
 	"time"
+        "context"
+        "google.golang.org/grpc/metadata"
 
 	"github.com/spf13/cobra"
 	"github.com/briandowns/spinner"
@@ -25,6 +27,7 @@ import (
 var (
 	file     string
 	isPlugin bool
+	invalidImgSize bool
 )
 
 var pushCmd = &cobra.Command{
@@ -40,8 +43,11 @@ var pushCmd = &cobra.Command{
 		if image == "" {
 			output = "image"
 		}
-
-		ch, err := containerzClient.PushImage(command.Context(), image, tag, file, isPlugin)
+                ctx, cancel := context.WithCancel(command.Context())
+                defer cancel()
+                ctx = metadata.AppendToOutgoingContext(ctx, "username","cisco", "password", "cisco123")
+                ch, err := containerzClient.PushImage(ctx, image, tag, file, isPlugin,invalidImgSize)
+		//ch, err := containerzClient.PushImage(command.Context(), image, tag, file,invalidImgSize)
 		if err != nil {
 			return err
 		}
@@ -72,4 +78,5 @@ func init() {
 	imageCmd.AddCommand(pushCmd)
 	pushCmd.PersistentFlags().StringVar(&file, "file", "", "Image tar to upload.")
 	pushCmd.PersistentFlags().BoolVar(&isPlugin, "is_plugin", false, "If set to true, a plugin will be uploaded rather than loading the image into the container runtime")
+	pushCmd.PersistentFlags().BoolVar(&invalidImgSize, "invalidImgSize", false, "If set to true, invalid image size will be sent")
 }
