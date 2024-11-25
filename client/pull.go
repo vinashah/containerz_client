@@ -25,7 +25,7 @@ import (
 )
 
 // PullImage implements the client logic for the target to pull an image from a remote location.
-func (c *Client) PullImage(ctx context.Context, image string, tag string, creds *tpb.Credentials) (<-chan *Progress, error) {
+func (c *Client) PullImage(ctx context.Context, image string, tag string, path string, vrf string, proto string, creds *tpb.Credentials) (<-chan *Progress, error) {
 	dcli, err := c.cli.Deploy(ctx)
 	if err != nil {
 		return nil, err
