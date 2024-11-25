@@ -44,7 +44,7 @@ var pullCmd = &cobra.Command{
 
                 ctx, cancel := context.WithCancel(command.Context())
                 defer cancel()
-                    ctx = metadata.AppendToOutgoingContext(ctx, "username","cisco", "password", "cisco123")
+                ctx = metadata.AppendToOutgoingContext(ctx, "username","cisco", "password", "cisco123")
                 ch, err := containerzClient.PullImage(ctx, image, tag, path, vrf, proto, nil)
 		if err != nil {
 			return err
@@ -61,6 +61,6 @@ var pullCmd = &cobra.Command{
 func init() {
 	imageCmd.AddCommand(pullCmd)
 	pullCmd.PersistentFlags().StringVar(&path, "path", "192.168.122.1:8080/vrf-relay.tar.gz", "Image tar path to download.")
-	pullCmd.PersistentFlags().StringVar(&vrf, "vrf", "", "vrf to used")
-	pullCmd.PersistentFlags().StringVar(&proto, "protocol", "http", "protocol to use : default is http")
+        pullCmd.PersistentFlags().StringVar(&vrf, "vrf", "", "vrf to used")
+        pullCmd.PersistentFlags().StringVar(&proto, "protocol", "http", "protocol to use : default is http")
 }
