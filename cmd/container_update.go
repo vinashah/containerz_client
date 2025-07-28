@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	async bool
+	updateAsync bool
 )
 
 var cntUpdateCmd = &cobra.Command{
@@ -67,12 +67,12 @@ var cntUpdateCmd = &cobra.Command{
 		defer cancel()
 		ctx = metadata.AppendToOutgoingContext(ctx, "username", "cisco", "password", "cisco123")
 
-		id, err := containerzClient.UpdateContainer(ctx, instance, image, tag, cntCommand, async, client.WithEnv(envs), client.WithPorts(ports), client.WithVolumes(volumes))
+		id, err := containerzClient.UpdateContainer(ctx, instance, image, tag, cntCommand, updateAsync, client.WithEnv(envs), client.WithPorts(ports), client.WithVolumes(volumes))
 		if err != nil {
 			return err
 		}
 
-		if async {
+		if updateAsync {
 			fmt.Printf("Container with id %s started updating asynchronously.\n", id)
 		} else {
 			fmt.Printf("Container with id %s updated successfully.\n", id)
@@ -84,9 +84,6 @@ var cntUpdateCmd = &cobra.Command{
 func init() {
 	containerCmd.AddCommand(cntUpdateCmd)
 
-	cntUpdateCmd.PersistentFlags().BoolVar(&async, "async", false, "Perform an asynchroneous "+
-		"update. If set, this command performs basic sanity checks on the request, but does not "+
-		"follow the update process, i.e., it can not provide the outcome of the update process.")
 	cntUpdateCmd.PersistentFlags().StringVar(&cntCommand, "command", "/bin/bash", "command to run.")
 	cntUpdateCmd.PersistentFlags().StringVar(&instance, "instance", "", "Container to update.")
 	cntUpdateCmd.PersistentFlags().StringVar(&network, "network", "", "Network to attach container to.")
