@@ -98,10 +98,5 @@ func init() {
 	cntUpdateCmd.PersistentFlags().StringArrayVarP(&devices, "device", "d", []string{}, "Devices to attach to the container (format: <src-path>[:<dst-path>[:<permissions>]])")
 	cntUpdateCmd.PersistentFlags().StringArrayVar(&addCaps, "add_caps", []string{}, "Capabilities to add.")
 	cntUpdateCmd.PersistentFlags().StringArrayVar(&delCaps, "del_caps", []string{}, "Capabilities to remove.")
-	cntUpdateCmd.PersistentFlags().StringVar(&cntCommand, "command", "/bin/bash", "command to run.")
-	cntUpdateCmd.PersistentFlags().StringVar(&instance, "instance", "", "Name of the container to update.")
-	cntUpdateCmd.PersistentFlags().StringArrayVar(&ports, "port", []string{}, "Ports to expose (format: <internal_port>:<external_port>")
-	cntUpdateCmd.PersistentFlags().StringArrayVar(&envs, "env", []string{}, "Environment vars to set (format: <VAR_NAME>=<VAR_VALUE>")
-	cntUpdateCmd.PersistentFlags().StringArrayVarP(&volumes, "volume", "v", []string{}, "Volumes to attach to the container (format: <volume-name>:<mountpoint>[:ro])")
 	cntUpdateCmd.PersistentFlags().BoolVar(&updateAsync, "async", false, "Run the update operation asynchronously")
 }

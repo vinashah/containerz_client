@@ -95,7 +95,7 @@ var cntStartCmd = &cobra.Command{
 			opts = append(opts, client.WithHardLimit(hardMem))
 		}
 
-		id, err := containerzClient.StartContainer(ctx, image, tag, cntCommand, instance, client.WithEnv(envs), client.WithPorts(ports), client.WithVolumes(volumes), client.WithLabels(label), client.WithCPUs(cpus), client.WithSoftLimit(softMem),client.WithHardLimit(hardMem),client.WithDevices(devices))
+		id, err := containerzClient.StartContainer(ctx, image, tag, cntCommand, instance, client.WithEnv(envs), client.WithPorts(ports), client.WithVolumes(volumes), client.WithLabels(label), client.WithCPUs(cpus), client.WithSoftLimit(softMem),client.WithHardLimit(hardMem),client.WithDevices(devices), client.WithRestartPolicy(restartPolicy),client.WithCapabilities(addCaps, delCaps))
 		if err != nil {
 			return err
 		}
