@@ -16,9 +16,10 @@ package client
 
 import (
 	"context"
-	"errors"
 
 	cpb "github.com/openconfig/gnoi/containerz"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // RemoveImage removes an image from the target system. It returns nil upon success. Otherwise it
@@ -30,20 +31,31 @@ func (c *Client) RemoveImage(ctx context.Context, image string, tag string, forc
 		Tag:   tag,
 		Force: force,
 	})
-	if err != nil {
-		return err
-	}
+       if err != nil { 
+		st, ok := status.FromError(err)
+		if !ok {
+			return err
+		}
+		switch st.Code() {
+		case codes.FailedPrecondition:
+			return ErrRunning
+		case codes.NotFound:
+			return ErrNotFound
+		default:
+			return status.Errorf(codes.Unknown, "unknown error: %v", st.Message())
+		}
+       }
 
-	switch resp.GetCode() {
-	case cpb.RemoveImageResponse_SUCCESS:
-		return nil
-	case cpb.RemoveImageResponse_NOT_FOUND:
-		return ErrNotFound
-	case cpb.RemoveImageResponse_RUNNING:
-		return ErrRunning
-	case cpb.RemoveImageResponse_UNSPECIFIED:
-		return ErrUnspecified
-	default:
-		return errors.New("unknown error occurred")
-	}
+       switch resp.GetCode() {
+       case cpb.RemoveImageResponse_SUCCESS:
+               return nil
+       case cpb.RemoveImageResponse_NOT_FOUND:
+               return ErrNotFound
+       case cpb.RemoveImageResponse_RUNNING:
+               return ErrRunning
+       case cpb.RemoveImageResponse_UNSPECIFIED:
+               return nil
+       default:
+               return nil
+       }
 }
