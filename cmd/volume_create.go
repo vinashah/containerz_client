@@ -41,7 +41,6 @@ var volCreateCmd = &cobra.Command{
 		}
 
 		lbls := map[string]string{}
-		fmt.Printf("labels %q \n", labels)
 		for _, l := range labels {
 			parts := strings.SplitN(l, "=", 2)
 			lbls[parts[0]] = parts[1]
